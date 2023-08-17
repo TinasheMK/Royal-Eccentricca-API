@@ -107,6 +107,7 @@ class ComposerStaticInit03f62a701bb49276ed836cc302fa93b8
             'Psr\\Http\\Client\\' => 16,
             'Psr\\EventDispatcher\\' => 20,
             'Psr\\Container\\' => 14,
+            'Psr\\Clock\\' => 10,
             'Psr\\Cache\\' => 10,
             'PragmaRX\\Google2FA\\' => 19,
             'PhpParser\\' => 10,
@@ -409,6 +410,10 @@ class ComposerStaticInit03f62a701bb49276ed836cc302fa93b8
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
+        'Psr\\Clock\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/clock/src',
+        ),
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
@@ -710,6 +715,7 @@ class ComposerStaticInit03f62a701bb49276ed836cc302fa93b8
         'App\\Http\\Controllers\\CommentsController' => __DIR__ . '/../..' . '/app/Http/Controllers/CommentsController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\HomeController' => __DIR__ . '/../..' . '/app/Http/Controllers/HomeController.php',
+        'App\\Http\\Controllers\\ImageController' => __DIR__ . '/../..' . '/app/Http/Controllers/ImageController.php',
         'App\\Http\\Controllers\\LikeController' => __DIR__ . '/../..' . '/app/Http/Controllers/LikeController.php',
         'App\\Http\\Controllers\\LoginController' => __DIR__ . '/../..' . '/app/Http/Controllers/LoginController.php',
         'App\\Http\\Controllers\\MessageController' => __DIR__ . '/../..' . '/app/Http/Controllers/MessageController.php',
@@ -740,6 +746,8 @@ class ComposerStaticInit03f62a701bb49276ed836cc302fa93b8
         'App\\Http\\Middleware\\TrustHosts' => __DIR__ . '/../..' . '/app/Http/Middleware/TrustHosts.php',
         'App\\Http\\Middleware\\TrustProxies' => __DIR__ . '/../..' . '/app/Http/Middleware/TrustProxies.php',
         'App\\Http\\Middleware\\VerifyCsrfToken' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyCsrfToken.php',
+        'App\\Http\\Requests\\StoreImageRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StoreImageRequest.php',
+        'App\\Http\\Requests\\UpdateImageRequest' => __DIR__ . '/../..' . '/app/Http/Requests/UpdateImageRequest.php',
         'App\\Mail\\OrderComplete' => __DIR__ . '/../..' . '/app/Mail/OrderComplete.php',
         'App\\Mail\\OrderDone' => __DIR__ . '/../..' . '/app/Mail/OrderDone.php',
         'App\\Mail\\OrderShop' => __DIR__ . '/../..' . '/app/Mail/OrderShop.php',
@@ -770,6 +778,7 @@ class ComposerStaticInit03f62a701bb49276ed836cc302fa93b8
         'App\\Notifications\\OrderPaid' => __DIR__ . '/../..' . '/app/Notifications/OrderPaid.php',
         'App\\Notifications\\OrderPlaced' => __DIR__ . '/../..' . '/app/Notifications/OrderPlaced.php',
         'App\\Notifications\\OrderReady' => __DIR__ . '/../..' . '/app/Notifications/OrderReady.php',
+        'App\\Policies\\ImagePolicy' => __DIR__ . '/../..' . '/app/Policies/ImagePolicy.php',
         'App\\Policies\\ShopPolicy' => __DIR__ . '/../..' . '/app/Policies/ShopPolicy.php',
         'App\\Policies\\TeamPolicy' => __DIR__ . '/../..' . '/app/Policies/TeamPolicy.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
@@ -1175,6 +1184,7 @@ class ComposerStaticInit03f62a701bb49276ed836cc302fa93b8
         'Database\\Seeders\\CategorySeeder' => __DIR__ . '/../..' . '/database/seeders/CategorySeeder.php',
         'Database\\Seeders\\CommentSeeder' => __DIR__ . '/../..' . '/database/seeders/CommentSeeder.php',
         'Database\\Seeders\\DatabaseSeeder' => __DIR__ . '/../..' . '/database/seeders/DatabaseSeeder.php',
+        'Database\\Seeders\\ImageSeeder' => __DIR__ . '/../..' . '/database/seeders/ImageSeeder.php',
         'Database\\Seeders\\LikeSeeder' => __DIR__ . '/../..' . '/database/seeders/LikeSeeder.php',
         'Database\\Seeders\\MessageSeeder' => __DIR__ . '/../..' . '/database/seeders/MessageSeeder.php',
         'Database\\Seeders\\NotificationSeeder' => __DIR__ . '/../..' . '/database/seeders/NotificationSeeder.php',
@@ -5515,6 +5525,7 @@ class ComposerStaticInit03f62a701bb49276ed836cc302fa93b8
         'Psr\\Cache\\CacheItemInterface' => __DIR__ . '/..' . '/psr/cache/src/CacheItemInterface.php',
         'Psr\\Cache\\CacheItemPoolInterface' => __DIR__ . '/..' . '/psr/cache/src/CacheItemPoolInterface.php',
         'Psr\\Cache\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/cache/src/InvalidArgumentException.php',
+        'Psr\\Clock\\ClockInterface' => __DIR__ . '/..' . '/psr/clock/src/ClockInterface.php',
         'Psr\\Container\\ContainerExceptionInterface' => __DIR__ . '/..' . '/psr/container/src/ContainerExceptionInterface.php',
         'Psr\\Container\\ContainerInterface' => __DIR__ . '/..' . '/psr/container/src/ContainerInterface.php',
         'Psr\\Container\\NotFoundExceptionInterface' => __DIR__ . '/..' . '/psr/container/src/NotFoundExceptionInterface.php',
