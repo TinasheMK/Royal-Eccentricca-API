@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.1.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="SHOPPING_CART" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+	 y="0px" viewBox="0 0 3916.5 1649.3" style="enable-background:new 0 0 3916.5 1649.3;" xml:space="preserve">
+<style type="text/css">
+	.st0{opacity:0;fill:#1D3C68;}
+	.st1{clip-path:url(#SVGID_2_);fill:#29A4F6;}
+	.st2{opacity:0.55;fill:none;stroke:#0C537A;stroke-width:84;stroke-miterlimit:10;}
+	.st3{fill:#FFAA39;}
+	.st4{fill:#29A4F6;}
+	.st5{fill:#2A4751;}
+	.st6{font-family:'Calibri';}
+	.st7{font-size:589px;}
+</style>
+<rect x="243.9" y="-3.8" class="st0" width="1150.5" height="1237.8"/>
+<g>
+	<defs>
+		<rect id="SVGID_1_" x="420.5" y="776.5" width="673" height="476"/>
+	</defs>
+	<clipPath id="SVGID_2_">
+		<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+	</clipPath>
+	<path class="st1" d="M939.1,1195.5H613.9c-57.1,0-103.4-46.3-103.4-103.4V750.9c0-57.1,46.3-103.4,103.4-103.4h325.2
+		c57.1,0,103.4,46.3,103.4,103.4v341.2C1042.5,1149.2,996.2,1195.5,939.1,1195.5z"/>
+</g>
+<path class="st2" d="M771.9,970.5L771.9,970.5c-83.8,0-151.7-67.9-151.7-151.7v-52.1c0-83.8,67.9-151.7,151.7-151.7h0
+	c83.8,0,151.7,67.9,151.7,151.7v52.1C923.5,902.6,855.6,970.5,771.9,970.5z"/>
+<g>
+	<path class="st3" d="M1064.2,473.5c-31.8,90.2-63.6,180.3-95.4,270.5c-71.8-0.6-143.7-1.2-215.5-1.8
+		c6.7-130.8,13.5-261.7,20.2-392.5c45.6,76.7,91.3,153.5,136.9,230.2C961.7,544.4,1012.9,509,1064.2,473.5z"/>
+	<circle class="st3" cx="1054.7" cy="490.7" r="40.5"/>
+	<path class="st3" d="M479.5,473.5c31.8,90.2,63.6,180.3,95.4,270.5c71.8-0.6,143.7-1.2,215.5-1.8c-6.7-130.8-13.5-261.7-20.2-392.5
+		c-45.6,76.7-91.3,153.5-136.9,230.2C582,544.4,530.8,509,479.5,473.5z"/>
+	<circle class="st3" cx="489" cy="490.7" r="40.5"/>
+	<circle class="st3" cx="773.8" cy="349.6" r="47.3"/>
+</g>
+<circle class="st4" cx="620.2" cy="820" r="22.6"/>
+<circle class="st4" cx="923.5" cy="820" r="22.6"/>
+<text transform="matrix(1 0 0 1 1183.5531 1014.489)" class="st5 st6 st7">Kamusika</text>
+</svg>
