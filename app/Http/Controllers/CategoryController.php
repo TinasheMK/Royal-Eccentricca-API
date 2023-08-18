@@ -85,9 +85,19 @@ class CategoryController extends Controller
 
     public function getCategories()
     {
-        $categories = Category::whereNotNull('parent_id')->get();
+        $categories = Category::whereNull('parent_id')->get();
 
-        return $categories;
+        foreach ($categories as $p)
+        {
+          $p->subCategory;
+          foreach ($p->subCategory as $c)
+          {
+            $c->subCategory;
+          }
+        }
+
+        return response()->json($categories);
+
     }
 
     public function getCategoryProducts(Category $category)
