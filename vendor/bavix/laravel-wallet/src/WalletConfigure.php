@@ -1,31 +1,36 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet;
 
 /**
  * Class WalletConfigure.
- *
  * @codeCoverageIgnore
  */
-final class WalletConfigure
+class WalletConfigure
 {
-    private static bool $runsMigrations = true;
+    /**
+     * Indicates if Wallet migrations will be run.
+     *
+     * @var bool
+     */
+    public static $runsMigrations = true;
 
     /**
-     * Configure Wallet to not register its migrations.
+     * WalletConfigure constructor.
      */
-    public static function ignoreMigrations(): void
+    final public function __construct()
     {
-        self::$runsMigrations = false;
     }
 
     /**
-     * Indicates if Wallet migrations will be run.
+     * Configure Wallet to not register its migrations.
+     *
+     * @return static
      */
-    public static function isRunsMigrations(): bool
+    public static function ignoreMigrations(): self
     {
-        return self::$runsMigrations;
+        static::$runsMigrations = false;
+
+        return new static();
     }
 }

@@ -41,7 +41,7 @@ Add the `$quantity` parameter to the `canBuy` method.
 // old
 public function canBuy(Customer $customer, bool $force = false): bool
 // new
-public function canBuy(Customer $customer, int $quantity = 1, bool $force = false): bool
+public function canBuy(Customer $customer, int $quantity = 1, bool $force = null): bool
 ```
 
 Add method `getUniqueId` to Interface `Product`
@@ -163,88 +163,4 @@ Your code on 6.x:
     'mathable' => BrickMath::class,
 ```
 
-## 6.x.x → 7.x.x
 
-*Update `config/wallet.php`*
-
-The `config/wallet.php` config has changed a lot, if you have it in your project, then replace it run.
-
-```bash
-php artisan vendor:publish --tag=laravel-wallet-config --force
-```
-
-Then return your settings. The package configuration has changed globally and there is no point in describing each key 🔑
-
----
-
-*UUID for wallet*
-
-The uuid field has been added to the wallet table, which is now actively used.
-If you have a highload, then I recommend that you add the field yourself and mark the migration (UpdateWalletsUuidTable) completed.
-If you have mysql, it is better to do this via [pt-online-schema-change](https://www.percona.com/doc/percona-toolkit/3.0/pt-online-schema-change.html).
-
-If you have a small project and a small wallet base, then the migration will be applied automatically.
-
----
-
-That's it, you can use all 7.x functions to the fullest. 
-The contract did not change globally, added more stringency and toned down the performance of the package. 
-On a basket of 150 products, the acceleration is a whopping 24x.
-
-All changes can be found in the [pull request](https://github.com/bavix/laravel-wallet/pull/407/files). 
-The kernel has changed globally, I would not recommend switching to version 7.0.0 at the very beginning, there may be bugs. 
-I advise you should at least 7.0.1.
-
-## 7.x.x → 8.0.x
-
-Nothing needs to be done.
-
-## 8.0.x → 8.1.x
-
-Replace `getAvailableBalance` to `getAvailableBalanceAttribute` (method) or `available_balance` (property).
-
----
-
-Cart methods now support fluent-dto. It is necessary to replace the old code with a new one, for example:
-
-```php
-// old
-$cart = app(\Bavix\Wallet\Objects\Cart::class)
-    ->addItems($products)
-    ->addItem($product)
-    ->setMeta(['hello' => 'world']);
-    
-$cart->addItem($product);
-
-// new. fluent
-$cart = app(\Bavix\Wallet\Objects\Cart::class)
-    ->withItems($products)
-    ->withItem($product)
-    ->withMeta(['hello' => 'world']);
-
-$cart = $cart->withItem($product);
-```
-
-## 8.1.x+ → 9.0.x
-
-> The logic of storing transfers between accounts has changed.
-> Previously, money could be credited to the user directly, but starting from version nine, all transactions go strictly between wallets. 
-> Thanks to this approach, finally, there will be full-fledged work with uuid identifiers in the project.
-
-To migrate to the correct structure, you need to run the command:
-```
-artisan bx:transfer:fix
-```
-
-If the command fails, then the command must be restarted. 
-Continue until the command starts executing immediately (no bad entries left).
-
----
-
-The product has been divided into two interfaces:
-- `ProductLimitedInterface`. Needed to create limited goods;
-- `ProductInterface`. Needed for an infinite number of products;
-
-The old Product interface should be replaced with one of these.
-
-Replace `Bavix\Wallet\Interfaces\Product` to `Bavix\Wallet\Interfaces\ProductLimitedInterface`. 

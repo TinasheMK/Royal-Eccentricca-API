@@ -16,8 +16,8 @@ You must be forced to refresh the balance.
 Let's say the user's balance
 
 ```php
-$user->id; // 5
-$user->balance; // 27
+$user->id; // int(5)
+$user->balance; // int(27)
 ```
 
 And he has unconfirmed transactions.
@@ -35,9 +35,9 @@ where confirmed=0 and
 Refresh the balance.
 
 ```php
-$user->balance; // 27
+$user->balance; // int(27)
 $user->wallet->refreshBalance();
-$user->balance; // 42
+$user->balance; // int(42)
 ```
 
 It worked! 

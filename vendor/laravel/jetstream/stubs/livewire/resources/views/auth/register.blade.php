@@ -16,7 +16,7 @@
 
             <div class="mt-4">
                 <x-jet-label for="email" value="{{ __('Email') }}" />
-                <x-jet-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+                <x-jet-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
             </div>
 
             <div class="mt-4">
@@ -33,7 +33,7 @@
                 <div class="mt-4">
                     <x-jet-label for="terms">
                         <div class="flex items-center">
-                            <x-jet-checkbox name="terms" id="terms" required />
+                            <x-jet-checkbox name="terms" id="terms"/>
 
                             <div class="ml-2">
                                 {!! __('I agree to the :terms_of_service and :privacy_policy', [

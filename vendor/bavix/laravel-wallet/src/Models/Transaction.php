@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Models;
 
+use function array_merge;
+use Bavix\Wallet\Interfaces\Mathable;
 use Bavix\Wallet\Interfaces\Wallet;
-use Bavix\Wallet\Internal\Service\MathServiceInterface;
 use Bavix\Wallet\Models\Wallet as WalletModel;
-use Bavix\Wallet\Services\CastServiceInterface;
+use Bavix\Wallet\Services\WalletService;
 use function config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,29 +15,25 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 /**
  * Class Transaction.
  *
- * @property string      $payable_type
- * @property int|string  $payable_id
- * @property int         $wallet_id
- * @property string      $uuid
- * @property string      $type
- * @property string      $amount
- * @property int         $amountInt
- * @property string      $amountFloat
- * @property bool        $confirmed
- * @property array       $meta
- * @property Wallet      $payable
+ * @property string $payable_type
+ * @property int $payable_id
+ * @property int $wallet_id
+ * @property string $uuid
+ * @property string $type
+ * @property int|string $amount
+ * @property float $amountFloat
+ * @property bool $confirmed
+ * @property array $meta
+ * @property Wallet $payable
  * @property WalletModel $wallet
- *
- * @method int getKey()
  */
 class Transaction extends Model
 {
     public const TYPE_DEPOSIT = 'deposit';
-
     public const TYPE_WITHDRAW = 'withdraw';
 
     /**
-     * @var string[]
+     * @var array
      */
     protected $fillable = [
         'payable_type',
@@ -49,12 +44,10 @@ class Transaction extends Model
         'amount',
         'confirmed',
         'meta',
-        'created_at',
-        'updated_at',
     ];
 
     /**
-     * @var array<string, string>
+     * @var array
      */
     protected $casts = [
         'wallet_id' => 'int',
@@ -62,48 +55,67 @@ class Transaction extends Model
         'meta' => 'json',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getCasts(): array
+    {
+        return array_merge(
+            parent::getCasts(),
+            config('wallet.transaction.casts', [])
+        );
+    }
+
+    /**
+     * @return string
+     */
     public function getTable(): string
     {
-        if ((string) $this->table === '') {
+        if (! $this->table) {
             $this->table = config('wallet.transaction.table', 'transactions');
         }
 
         return parent::getTable();
     }
 
+    /**
+     * @return MorphTo
+     */
     public function payable(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function wallet(): BelongsTo
     {
         return $this->belongsTo(config('wallet.wallet.model', WalletModel::class));
     }
 
-    public function getAmountIntAttribute(): int
+    /**
+     * @return int|float
+     */
+    public function getAmountFloatAttribute()
     {
-        return (int) $this->amount;
+        $decimalPlaces = app(WalletService::class)
+            ->decimalPlaces($this->wallet);
+
+        return app(Mathable::class)
+            ->div($this->amount, $decimalPlaces);
     }
 
-    public function getAmountFloatAttribute(): string
+    /**
+     * @param int|float $amount
+     *
+     * @return void
+     */
+    public function setAmountFloatAttribute($amount): void
     {
-        $math = app(MathServiceInterface::class);
-        $decimalPlacesValue = app(CastServiceInterface::class)
-            ->getWallet($this->wallet)
-            ->decimal_places;
-        $decimalPlaces = $math->powTen($decimalPlacesValue);
-
-        return $math->div($this->amount, $decimalPlaces, $decimalPlacesValue);
-    }
-
-    public function setAmountFloatAttribute(float|int|string $amount): void
-    {
-        $math = app(MathServiceInterface::class);
-        $decimalPlacesValue = app(CastServiceInterface::class)
-            ->getWallet($this->wallet)
-            ->decimal_places;
-        $decimalPlaces = $math->powTen($decimalPlacesValue);
+        $math = app(Mathable::class);
+        $decimalPlaces = app(WalletService::class)
+            ->decimalPlaces($this->wallet);
 
         $this->amount = $math->round($math->mul($amount, $decimalPlaces));
     }

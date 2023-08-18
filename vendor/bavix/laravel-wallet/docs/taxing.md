@@ -16,19 +16,19 @@ class User extends Model implements Customer
 
 ## Item Model
 
-Add the `HasWallet` trait and `ProductInterface` (or `ProductLimitedInterface`) interface to Item model.
+Add the `HasWallet` trait and `Product` interface to Item model.
 
 ```php
 use Bavix\Wallet\Traits\HasWallet;
+use Bavix\Wallet\Interfaces\Product;
 use Bavix\Wallet\Interfaces\Customer;
 use Bavix\Wallet\Interfaces\Taxable;
-use Bavix\Wallet\Interfaces\ProductLimitedInterface;
 
-class Item extends Model implements ProductLimitedInterface, Taxable
+class Item extends Model implements Product, Taxable
 {
     use HasWallet;
 
-    public function canBuy(Customer $customer, int $quantity = 1, bool $force = false): bool
+    public function canBuy(Customer $customer, int $quantity = 1, bool $force = null): bool
     {
         /**
          * If the service can be purchased once, then
@@ -37,7 +37,7 @@ class Item extends Model implements ProductLimitedInterface, Taxable
         return true; 
     }
 
-    public function getAmountProduct(Customer $customer): int|string
+    public function getAmountProduct(Customer $customer)
     {
         return 100;
     }
@@ -49,7 +49,12 @@ class Item extends Model implements ProductLimitedInterface, Taxable
             'description' => 'Purchase of Product #' . $this->id,
         ];
     }
-
+    
+    public function getUniqueId(): string
+    {
+        return (string)$this->getKey();
+    }
+    
     public function getFeePercent()
     {
         return 0.03; // 3%    
@@ -63,38 +68,47 @@ Find the user and check the balance.
 
 ```php
 $user = User::first();
-$user->balance; // 103
+$user->balance; // int(103)
 ```
 
 Find the goods and check the cost.
 
 ```php
 $item = Item::first();
-$item->getAmountProduct($user); // 100
+$item->getAmountProduct($user); // int(100)
 ```
 
 The user can buy a product, buy...
 
 ```php
 $user->pay($item); // success, 100 (product) + 3 (fee) = 103
-$user->balance; // 0
+$user->balance; // int(0)
 ```
 
 ## Minimal Taxing
 
-Add interface `MinimalTaxable` (or `MaximalTaxable`) in class `Item`.
+Add trait `MinimalTaxable` in class `Item`.
 
 ```php
 use Bavix\Wallet\Traits\HasWallet;
+use Bavix\Wallet\Interfaces\Product;
 use Bavix\Wallet\Interfaces\Customer;
 use Bavix\Wallet\Interfaces\MinimalTaxable;
-use Bavix\Wallet\Interfaces\ProductInterface;
 
-class Item extends Model implements ProductInterface, MinimalTaxable
+class Item extends Model implements Product, MinimalTaxable
 {
     use HasWallet;
 
-    public function getAmountProduct(Customer $customer): int|string
+    public function canBuy(Customer $customer, int $quantity = 1, bool $force = null): bool
+    {
+        /**
+         * If the service can be purchased once, then
+         *  return !$customer->paid($this);
+         */
+        return true; 
+    }
+
+    public function getAmountProduct(Customer $customer)
     {
         return 100;
     }
@@ -106,7 +120,12 @@ class Item extends Model implements ProductInterface, MinimalTaxable
             'description' => 'Purchase of Product #' . $this->id,
         ];
     }
-
+    
+    public function getUniqueId(): string
+    {
+        return (string)$this->getKey();
+    }
+    
     public function getFeePercent()
     {
         return 0.03; // 3%    
@@ -114,7 +133,7 @@ class Item extends Model implements ProductInterface, MinimalTaxable
     
     public function getMinimalFee()
     {
-        return 5; // 3%, minimum 5    
+        return 5; // 3%, minimum int(5)    
     }
 }
 ```
@@ -125,21 +144,21 @@ Find the user and check the balance.
 
 ```php
 $user = User::first();
-$user->balance; // 105
+$user->balance; // int(105)
 ```
 
 Find the goods and check the cost.
 
 ```php
 $item = Item::first();
-$item->getAmountProduct($user); // 100
+$item->getAmountProduct($user); // int(100)
 ```
 
 The user can buy a product, buy...
 
 ```php
 $user->pay($item); // success, 100 (product) + 5 (minimal fee) = 105
-$user->balance; // 0
+$user->balance; // int(0)
 ```
 
 #### Failed
@@ -148,21 +167,21 @@ Find the user and check the balance.
 
 ```php
 $user = User::first();
-$user->balance; // 103
+$user->balance; // int(103)
 ```
 
 Find the goods and check the cost.
 
 ```php
 $item = Item::first();
-$item->getAmountProduct($user); // 100
+$item->getAmountProduct($user); // int(100)
 ```
 
 The user can buy a product, buy...
 
 ```php
 $user->safePay($item); // failed, 100 (product) + 5 (minimal fee) = 105
-$user->balance; // 103
+$user->balance; // int(103)
 ```
 
 It worked! 

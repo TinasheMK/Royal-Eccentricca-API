@@ -1,10 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Interfaces;
 
-interface Discount
+interface Discount extends Product
 {
-    public function getPersonalDiscount(Customer $customer): float|int;
+    /**
+     * @param Customer $customer
+     *
+     * @return int|float
+     */
+    public function getPersonalDiscount(Customer $customer);
 }

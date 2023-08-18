@@ -1,11 +1,11 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3';
-import AuthenticationCard from '@/Components/AuthenticationCard.vue';
-import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import { Head, useForm } from '@inertiajs/inertia-vue3';
+import JetAuthenticationCard from '@/Jetstream/AuthenticationCard.vue';
+import JetAuthenticationCardLogo from '@/Jetstream/AuthenticationCardLogo.vue';
+import JetButton from '@/Jetstream/Button.vue';
+import JetInput from '@/Jetstream/Input.vue';
+import JetLabel from '@/Jetstream/Label.vue';
+import JetValidationErrors from '@/Jetstream/ValidationErrors.vue';
 
 defineProps({
     status: String,
@@ -23,9 +23,9 @@ const submit = () => {
 <template>
     <Head title="Forgot Password" />
 
-    <AuthenticationCard>
+    <JetAuthenticationCard>
         <template #logo>
-            <AuthenticationCardLogo />
+            <JetAuthenticationCardLogo />
         </template>
 
         <div class="mb-4 text-sm text-gray-600">
@@ -36,26 +36,26 @@ const submit = () => {
             {{ status }}
         </div>
 
+        <JetValidationErrors class="mb-4" />
+
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email" />
-                <TextInput
+                <JetLabel for="email" value="Email" />
+                <JetInput
                     id="email"
                     v-model="form.email"
                     type="email"
                     class="mt-1 block w-full"
                     required
                     autofocus
-                    autocomplete="username"
                 />
-                <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                <JetButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                     Email Password Reset Link
-                </PrimaryButton>
+                </JetButton>
             </div>
         </form>
-    </AuthenticationCard>
+    </JetAuthenticationCard>
 </template>

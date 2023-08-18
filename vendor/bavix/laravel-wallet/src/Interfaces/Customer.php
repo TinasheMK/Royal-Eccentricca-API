@@ -1,204 +1,130 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Interfaces;
 
-use Bavix\Wallet\Exceptions\BalanceIsEmpty;
-use Bavix\Wallet\Exceptions\InsufficientFunds;
-use Bavix\Wallet\Exceptions\ProductEnded;
-use Bavix\Wallet\Internal\Exceptions\ExceptionInterface;
-use Bavix\Wallet\Internal\Exceptions\LockProviderNotFoundException;
-use Bavix\Wallet\Internal\Exceptions\ModelNotFoundException;
-use Bavix\Wallet\Internal\Exceptions\RecordNotFoundException;
-use Bavix\Wallet\Internal\Exceptions\TransactionFailedException;
 use Bavix\Wallet\Models\Transfer;
-use Illuminate\Database\RecordsNotFoundException;
+use Bavix\Wallet\Objects\Cart;
 
 interface Customer extends Wallet
 {
     /**
-     * @throws ProductEnded
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
-     */
-    public function payFree(ProductInterface $product): Transfer;
-
-    public function safePay(ProductInterface $product, bool $force = false): ?Transfer;
-
-    /**
-     * @throws ProductEnded
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
-     */
-    public function pay(ProductInterface $product, bool $force = false): Transfer;
-
-    /**
-     * @throws ProductEnded
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
-     */
-    public function forcePay(ProductInterface $product): Transfer;
-
-    public function safeRefund(ProductInterface $product, bool $force = false, bool $gifts = false): bool;
-
-    /**
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function refund(ProductInterface $product, bool $force = false, bool $gifts = false): bool;
-
-    /**
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function forceRefund(ProductInterface $product, bool $gifts = false): bool;
-
-    public function safeRefundGift(ProductInterface $product, bool $force = false): bool;
-
-    /**
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function refundGift(ProductInterface $product, bool $force = false): bool;
-
-    /**
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function forceRefundGift(ProductInterface $product): bool;
-
-    /**
-     * @throws ProductEnded
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @param Product $product
+     * @param bool $force
      *
-     * @return non-empty-array<Transfer>
+     * @return Transfer
+     *
+     * @throws
      */
-    public function payFreeCart(CartInterface $cart): array;
+    public function pay(Product $product, bool $force = null): Transfer;
 
     /**
+     * @param Product $product
+     * @param bool $force
+     *
+     * @return Transfer|null
+     *
+     * @throws
+     */
+    public function safePay(Product $product, bool $force = null): ?Transfer;
+
+    /**
+     * @param Product $product
+     * @return Transfer
+     *
+     * @throws
+     */
+    public function forcePay(Product $product): Transfer;
+
+    /**
+     * @param Product $product
+     * @param bool $gifts
+     *
+     * @return null|Transfer
+     */
+    public function paid(Product $product, bool $gifts = null): ?Transfer;
+
+    /**
+     * @param Product $product
+     * @param bool $force
+     * @param bool $gifts
+     *
+     * @return bool
+     *
+     * @throws
+     */
+    public function refund(Product $product, bool $force = null, bool $gifts = null): bool;
+
+    /**
+     * @param Product $product
+     * @param bool $force
+     * @param bool $gifts
+     *
+     * @return bool
+     */
+    public function safeRefund(Product $product, bool $force = null, bool $gifts = null): bool;
+
+    /**
+     * @param Product $product
+     * @param bool $gifts
+     *
+     * @return bool
+     */
+    public function forceRefund(Product $product, bool $gifts = null): bool;
+
+    /**
+     * @param Cart $cart
+     * @param bool $force
+     *
      * @return Transfer[]
-     */
-    public function safePayCart(CartInterface $cart, bool $force = false): array;
-
-    /**
-     * @throws ProductEnded
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
      *
-     * @return non-empty-array<Transfer>
+     * @throws
      */
-    public function payCart(CartInterface $cart, bool $force = false): array;
+    public function payCart(Cart $cart, bool $force = null): array;
 
     /**
-     * @throws ProductEnded
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @param Cart $cart
+     * @param bool $force
      *
-     * @return non-empty-array<Transfer>
-     */
-    public function forcePayCart(CartInterface $cart): array;
-
-    public function safeRefundCart(CartInterface $cart, bool $force = false, bool $gifts = false): bool;
-
-    /**
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function refundCart(CartInterface $cart, bool $force = false, bool $gifts = false): bool;
-
-    /**
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function forceRefundCart(CartInterface $cart, bool $gifts = false): bool;
-
-    public function safeRefundGiftCart(CartInterface $cart, bool $force = false): bool;
-
-    /**
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function refundGiftCart(CartInterface $cart, bool $force = false): bool;
-
-    /**
-     * @throws LockProviderNotFoundException
-     * @throws RecordNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ModelNotFoundException
-     * @throws ExceptionInterface
-     */
-    public function forceRefundGiftCart(CartInterface $cart): bool;
-
-    /**
-     * Checks acquired product your wallet.
+     * @return Transfer[]
      *
-     * @deprecated The method is slow and will be removed in the future
-     * @see PurchaseServiceInterface
+     * @throws
      */
-    public function paid(ProductInterface $product, bool $gifts = false): ?Transfer;
+    public function safePayCart(Cart $cart, bool $force = null): array;
+
+    /**
+     * @param Cart $cart
+     *
+     * @return Transfer[]
+     *
+     * @throws
+     */
+    public function forcePayCart(Cart $cart): array;
+
+    /**
+     * @param Cart $cart
+     * @param bool $force
+     * @param bool $gifts
+     *
+     * @return bool
+     *
+     * @throws
+     */
+    public function refundCart(Cart $cart, bool $force = null, bool $gifts = null): bool;
+
+    /**
+     * @param Cart $cart
+     * @param bool $force
+     * @param bool $gifts
+     *
+     * @return bool
+     */
+    public function safeRefundCart(Cart $cart, bool $force = null, bool $gifts = null): bool;
+
+    /**
+     * @param Cart $cart
+     * @param bool $gifts
+     *
+     * @return bool
+     */
+    public function forceRefundCart(Cart $cart, bool $gifts = null): bool;
 }

@@ -1,109 +1,126 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Traits;
 
 use function app;
+use Bavix\Wallet\Exceptions\AmountInvalid;
 use Bavix\Wallet\Exceptions\BalanceIsEmpty;
 use Bavix\Wallet\Exceptions\InsufficientFunds;
-use Bavix\Wallet\Interfaces\ProductInterface;
+use Bavix\Wallet\Interfaces\Customer;
+use Bavix\Wallet\Interfaces\Mathable;
+use Bavix\Wallet\Interfaces\Product;
 use Bavix\Wallet\Interfaces\Wallet;
-use Bavix\Wallet\Internal\Assembler\TransferDtoAssemblerInterface;
-use Bavix\Wallet\Internal\Exceptions\ExceptionInterface;
-use Bavix\Wallet\Internal\Exceptions\LockProviderNotFoundException;
-use Bavix\Wallet\Internal\Exceptions\TransactionFailedException;
-use Bavix\Wallet\Internal\Service\MathServiceInterface;
-use Bavix\Wallet\Models\Transaction;
 use Bavix\Wallet\Models\Transfer;
-use Bavix\Wallet\Services\AtmServiceInterface;
-use Bavix\Wallet\Services\AtomicServiceInterface;
-use Bavix\Wallet\Services\CastServiceInterface;
-use Bavix\Wallet\Services\ConsistencyServiceInterface;
-use Bavix\Wallet\Services\DiscountServiceInterface;
-use Bavix\Wallet\Services\TaxServiceInterface;
-use Bavix\Wallet\Services\TransactionServiceInterface;
-use Illuminate\Database\RecordsNotFoundException;
+use Bavix\Wallet\Objects\Bring;
+use Bavix\Wallet\Services\CommonService;
+use Bavix\Wallet\Services\DbService;
+use Bavix\Wallet\Services\LockService;
+use Bavix\Wallet\Services\WalletService;
+use Throwable;
 
 /**
  * Trait HasGift.
- *
- * @psalm-require-extends \Illuminate\Database\Eloquent\Model
  */
 trait HasGift
 {
     /**
      * Give the goods safely.
+     *
+     * @param Wallet $to
+     * @param Product $product
+     * @param bool $force
+     *
+     * @return Transfer|null
      */
-    public function safeGift(Wallet $to, ProductInterface $product, bool $force = false): ?Transfer
+    public function safeGift(Wallet $to, Product $product, bool $force = null): ?Transfer
     {
         try {
             return $this->gift($to, $product, $force);
-        } catch (ExceptionInterface) {
+        } catch (Throwable $throwable) {
             return null;
         }
     }
 
     /**
-     * From this moment on, each user (wallet) can give the goods to another user (wallet). This functionality can be
-     * organized for gifts.
+     * From this moment on, each user (wallet) can give
+     * the goods to another user (wallet).
+     * This functionality can be organized for gifts.
      *
+     * @param Wallet $to
+     * @param Product $product
+     * @param bool $force
+     *
+     * @return Transfer
+     *
+     * @throws AmountInvalid
      * @throws BalanceIsEmpty
      * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @throws Throwable
      */
-    public function gift(Wallet $to, ProductInterface $product, bool $force = false): Transfer
+    public function gift(Wallet $to, Product $product, bool $force = null): Transfer
     {
-        return app(AtomicServiceInterface::class)->block($this, function () use ($to, $product, $force): Transfer {
-            $mathService = app(MathServiceInterface::class);
-            $discount = app(DiscountServiceInterface::class)->getDiscount($this, $product);
-            $amount = $mathService->sub($product->getAmountProduct($this), $discount);
-            $fee = app(TaxServiceInterface::class)->getFee($product, $amount);
+        return app(LockService::class)->lock($this, __FUNCTION__, function () use ($to, $product, $force): Transfer {
+            /**
+             * Who's giving? Let's call him Santa Claus.
+             * @var Customer $santa
+             */
+            $santa = $this;
 
-            if (! $force) {
-                app(ConsistencyServiceInterface::class)->checkPotential($this, $mathService->add($amount, $fee));
-            }
+            /**
+             * Unfortunately,
+             * I think it is wrong to make the "assemble" method public.
+             * That's why I address him like this!
+             */
+            return app(DbService::class)->transaction(static function () use ($santa, $to, $product, $force): Transfer {
+                $math = app(Mathable::class);
+                $discount = app(WalletService::class)->discount($santa, $product);
+                $amount = $math->sub($product->getAmountProduct($santa), $discount);
+                $meta = $product->getMetaProduct();
+                $fee = app(WalletService::class)
+                    ->fee($product, $amount);
 
-            $transactionService = app(TransactionServiceInterface::class);
-            $metaProduct = $product->getMetaProduct();
-            $withdraw = $transactionService->makeOne(
-                $this,
-                Transaction::TYPE_WITHDRAW,
-                $mathService->add($amount, $fee),
-                $metaProduct
-            );
-            $deposit = $transactionService->makeOne($product, Transaction::TYPE_DEPOSIT, $amount, $metaProduct);
+                $commonService = app(CommonService::class);
 
-            $castService = app(CastServiceInterface::class);
+                /**
+                 * Santa pays taxes.
+                 */
+                if (! $force) {
+                    $commonService->verifyWithdraw($santa, $math->add($amount, $fee));
+                }
 
-            $transfer = app(TransferDtoAssemblerInterface::class)->create(
-                $deposit->getKey(),
-                $withdraw->getKey(),
-                Transfer::STATUS_GIFT,
-                $castService->getWallet($to),
-                $castService->getWallet($product),
-                $discount,
-                $fee
-            );
+                $withdraw = $commonService->forceWithdraw($santa, $math->add($amount, $fee), $meta);
+                $deposit = $commonService->deposit($product, $amount, $meta);
 
-            $transfers = app(AtmServiceInterface::class)->makeTransfers([$transfer]);
+                $from = app(WalletService::class)
+                    ->getWallet($to);
 
-            return current($transfers);
+                $transfers = $commonService->assemble([
+                    app(Bring::class)
+                        ->setStatus(Transfer::STATUS_GIFT)
+                        ->setDiscount($discount)
+                        ->setDeposit($deposit)
+                        ->setWithdraw($withdraw)
+                        ->setFrom($from)
+                        ->setTo($product),
+                ]);
+
+                return current($transfers);
+            });
         });
     }
 
     /**
-     * Santa without money gives a gift.
+     * to give force).
      *
-     * @throws LockProviderNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @param Wallet $to
+     * @param Product $product
+     *
+     * @return Transfer
+     *
+     * @throws AmountInvalid
+     * @throws Throwable
      */
-    public function forceGift(Wallet $to, ProductInterface $product): Transfer
+    public function forceGift(Wallet $to, Product $product): Transfer
     {
         return $this->gift($to, $product, true);
     }

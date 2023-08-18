@@ -1,5 +1,5 @@
 {
-    "timeout": 2,
+    "timeout": 10,
     "source": {
         "directories": [
             "src"
@@ -7,8 +7,8 @@
     },
     "logs": {
         "text": "build/infection.log",
-        "stryker": {
-            "badge": "master"
+        "badge": {
+            "branch": "master"
         }
     },
     "mutators": {

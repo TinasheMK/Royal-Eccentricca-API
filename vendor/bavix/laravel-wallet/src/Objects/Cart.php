@@ -1,156 +1,187 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Objects;
 
-use Bavix\Wallet\Interfaces\CartInterface;
+use function array_unique;
 use Bavix\Wallet\Interfaces\Customer;
-use Bavix\Wallet\Interfaces\ProductInterface;
-use Bavix\Wallet\Internal\Dto\BasketDto;
-use Bavix\Wallet\Internal\Dto\BasketDtoInterface;
-use Bavix\Wallet\Internal\Dto\ItemDto;
-use Bavix\Wallet\Internal\Dto\ItemDtoInterface;
-use Bavix\Wallet\Internal\Exceptions\CartEmptyException;
-use Bavix\Wallet\Internal\Exceptions\ExceptionInterface;
-use Bavix\Wallet\Internal\Service\MathServiceInterface;
-use Bavix\Wallet\Services\CastServiceInterface;
+use Bavix\Wallet\Interfaces\Mathable;
+use Bavix\Wallet\Interfaces\Product;
+use Bavix\Wallet\Models\Transfer;
 use function count;
 use Countable;
+use function get_class;
 
-final class Cart implements Countable, CartInterface
+class Cart implements Countable
 {
     /**
-     * @var array<string, ItemDtoInterface[]>
+     * @var Product[]
      */
-    private array $items = [];
+    protected $items = [];
 
     /**
-     * @var array<mixed>
+     * @var int[]
      */
-    private array $meta = [];
+    protected $quantity = [];
 
-    public function __construct(
-        private CastServiceInterface $castService,
-        private MathServiceInterface $math
-    ) {
-    }
+    protected $meta = [];
 
-    /**
-     * @return array<mixed>
-     */
     public function getMeta(): array
     {
         return $this->meta;
     }
 
-    /**
-     * @param array<mixed> $meta
-     */
-    public function withMeta(array $meta): self
+    public function setMeta(array $meta): self
     {
-        $self = clone $this;
-        $self->meta = $meta;
+        $this->meta = $meta;
 
-        return $self;
+        return $this;
     }
 
     /**
-     * @param positive-int $quantity
+     * @param Product $product
+     * @param int $quantity
+     * @return static
      */
-    public function withItem(ProductInterface $product, int $quantity = 1, int|string|null $pricePerItem = null): self
+    public function addItem(Product $product, int $quantity = 1): self
     {
-        $self = clone $this;
-
-        $productId = $self->productId($product);
-
-        $self->items[$productId] ??= [];
-        $self->items[$productId][] = new ItemDto($product, $quantity, $pricePerItem);
-
-        return $self;
-    }
-
-    /**
-     * @param iterable<ProductInterface> $products
-     */
-    public function withItems(iterable $products): self
-    {
-        $self = clone $this;
-        foreach ($products as $product) {
-            $self = $self->withItem($product);
+        $this->addQuantity($product, $quantity);
+        for ($i = 0; $i < $quantity; $i++) {
+            $this->items[] = $product;
         }
 
-        return $self;
+        return $this;
     }
 
     /**
-     * @return ProductInterface[]
+     * @param iterable $products
+     *
+     * @return static
+     */
+    public function addItems(iterable $products): self
+    {
+        foreach ($products as $product) {
+            $this->addItem($product);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Product[]
      */
     public function getItems(): array
     {
-        $items = [];
-        foreach ($this->items as $item) {
-            foreach ($item as $datum) {
-                $items[] = $datum->getItems();
+        return $this->items;
+    }
+
+    /**
+     * @return Product[]
+     */
+    public function getUniqueItems(): array
+    {
+        return array_unique($this->items);
+    }
+
+    /**
+     * The method returns the transfers already paid for the goods.
+     *
+     * @param Customer $customer
+     * @param bool|null $gifts
+     *
+     * @return Transfer[]
+     */
+    public function alreadyBuy(Customer $customer, bool $gifts = null): array
+    {
+        $status = [Transfer::STATUS_PAID];
+        if ($gifts) {
+            $status[] = Transfer::STATUS_GIFT;
+        }
+
+        /**
+         * @var Transfer $query
+         */
+        $result = [];
+        $query = $customer->transfers();
+        foreach ($this->getUniqueItems() as $product) {
+            $collect = (clone $query)
+                ->where('to_type', $product->getMorphClass())
+                ->where('to_id', $product->getKey())
+                ->whereIn('status', $status)
+                ->orderBy('id', 'desc')
+                ->limit($this->getQuantity($product))
+                ->get();
+
+            foreach ($collect as $datum) {
+                $result[] = $datum;
             }
         }
 
-        return array_merge(...$items);
+        return $result;
     }
 
+    /**
+     * @param Customer $customer
+     * @param bool|null $force
+     *
+     * @return bool
+     */
+    public function canBuy(Customer $customer, bool $force = null): bool
+    {
+        foreach ($this->items as $item) {
+            if (! $item->canBuy($customer, $this->getQuantity($item), $force)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Customer $customer
+     *
+     * @return string
+     */
     public function getTotal(Customer $customer): string
     {
         $result = 0;
-        $prices = [];
-        foreach ($this->items as $productId => $_items) {
-            foreach ($_items as $item) {
-                $product = $item->getProduct();
-                $pricePerItem = $item->getPricePerItem();
-                if ($pricePerItem === null) {
-                    $prices[$productId] ??= $product->getAmountProduct($customer);
-                    $pricePerItem = $prices[$productId];
-                }
-
-                $price = $this->math->mul(count($item), $pricePerItem);
-                $result = $this->math->add($result, $price);
-            }
+        $math = app(Mathable::class);
+        foreach ($this->items as $item) {
+            $result = $math->add($result, $item->getAmountProduct($customer));
         }
 
-        return (string) $result;
+        return $result;
     }
 
+    /**
+     * @return int
+     */
     public function count(): int
     {
         return count($this->items);
     }
 
-    public function getQuantity(ProductInterface $product): int
+    /**
+     * @param Product $product
+     *
+     * @return int
+     */
+    public function getQuantity(Product $product): int
     {
-        $quantity = 0;
-        $items = $this->items[$this->productId($product)] ?? [];
-        foreach ($items as $item) {
-            $quantity += $item->count();
-        }
+        $class = get_class($product);
+        $uniq = $product->getUniqueId();
 
-        return $quantity;
+        return $this->quantity[$class][$uniq] ?? 0;
     }
 
     /**
-     * @throws CartEmptyException
+     * @param Product $product
+     * @param int $quantity
      */
-    public function getBasketDto(): BasketDtoInterface
+    protected function addQuantity(Product $product, int $quantity): void
     {
-        $items = array_merge(...array_values($this->items));
-
-        if ($items === []) {
-            throw new CartEmptyException('Cart is empty', ExceptionInterface::CART_EMPTY);
-        }
-
-        return new BasketDto($items, $this->getMeta());
-    }
-
-    private function productId(ProductInterface $product): string
-    {
-        return $product::class . ':' . $this->castService->getModel($product)->getKey();
+        $class = get_class($product);
+        $uniq = $product->getUniqueId();
+        $math = app(Mathable::class);
+        $this->quantity[$class][$uniq] = $math->add($this->getQuantity($product), $quantity);
     }
 }

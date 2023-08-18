@@ -1,17 +1,31 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Interfaces;
 
-/**
- * If the product is always in stock, then the ProductInterface must be used. If the product may not be available, then
- * there is a need to use the ProductLimitedInterface.
- *
- * @deprecated The class is deprecated. Will be removed in the future.
- * @see ProductInterface
- * @see ProductLimitedInterface
- */
-interface Product extends ProductLimitedInterface
+interface Product extends Wallet
 {
+    /**
+     * @param Customer $customer
+     * @param int $quantity
+     * @param bool $force
+     *
+     * @return bool
+     */
+    public function canBuy(Customer $customer, int $quantity = 1, bool $force = null): bool;
+
+    /**
+     * @param Customer $customer
+     * @return float|int
+     */
+    public function getAmountProduct(Customer $customer);
+
+    /**
+     * @return array
+     */
+    public function getMetaProduct(): ?array;
+
+    /**
+     * @return string
+     */
+    public function getUniqueId(): string;
 }

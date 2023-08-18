@@ -1,16 +1,22 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Services;
 
-/**
- * @internal
- */
-final class ExchangeService implements ExchangeServiceInterface
+use Bavix\Wallet\Interfaces\Rateable;
+use Bavix\Wallet\Interfaces\Wallet;
+
+class ExchangeService
 {
-    public function convertTo(string $fromCurrency, string $toCurrency, float|int|string $amount): string
+    /**
+     * @param Wallet $from
+     * @param Wallet $to
+     * @return int|float
+     */
+    public function rate(Wallet $from, Wallet $to)
     {
-        return (string) $amount;
+        return app(Rateable::class)
+            ->withAmount(1)
+            ->withCurrency($from)
+            ->convertTo($to);
     }
 }

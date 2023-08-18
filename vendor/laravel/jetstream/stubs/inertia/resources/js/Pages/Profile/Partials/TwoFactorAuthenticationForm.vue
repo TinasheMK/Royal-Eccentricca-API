@@ -1,14 +1,15 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
-import ActionSection from '@/Components/ActionSection.vue';
-import ConfirmsPassword from '@/Components/ConfirmsPassword.vue';
-import DangerButton from '@/Components/DangerButton.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import { Inertia } from '@inertiajs/inertia';
+import { useForm, usePage } from '@inertiajs/inertia-vue3';
+import JetActionSection from '@/Jetstream/ActionSection.vue';
+import JetButton from '@/Jetstream/Button.vue';
+import JetConfirmsPassword from '@/Jetstream/ConfirmsPassword.vue';
+import JetDangerButton from '@/Jetstream/DangerButton.vue';
+import JetInput from '@/Jetstream/Input.vue';
+import JetInputError from '@/Jetstream/InputError.vue';
+import JetLabel from '@/Jetstream/Label.vue';
+import JetSecondaryButton from '@/Jetstream/SecondaryButton.vue';
 
 const props = defineProps({
     requiresConfirmation: Boolean,
@@ -26,7 +27,7 @@ const confirmationForm = useForm({
 });
 
 const twoFactorEnabled = computed(
-    () => ! enabling.value && usePage().props.user?.two_factor_enabled,
+    () => ! enabling.value && usePage().props.value.user?.two_factor_enabled,
 );
 
 watch(twoFactorEnabled, () => {
@@ -39,7 +40,7 @@ watch(twoFactorEnabled, () => {
 const enableTwoFactorAuthentication = () => {
     enabling.value = true;
 
-    router.post('/user/two-factor-authentication', {}, {
+    Inertia.post('/user/two-factor-authentication', {}, {
         preserveScroll: true,
         onSuccess: () => Promise.all([
             showQrCode(),
@@ -93,7 +94,7 @@ const regenerateRecoveryCodes = () => {
 const disableTwoFactorAuthentication = () => {
     disabling.value = true;
 
-    router.delete('/user/two-factor-authentication', {
+    Inertia.delete('/user/two-factor-authentication', {
         preserveScroll: true,
         onSuccess: () => {
             disabling.value = false;
@@ -104,7 +105,7 @@ const disableTwoFactorAuthentication = () => {
 </script>
 
 <template>
-    <ActionSection>
+    <JetActionSection>
         <template #title>
             Two Factor Authentication
         </template>
@@ -146,16 +147,16 @@ const disableTwoFactorAuthentication = () => {
 
                     <div class="mt-4" v-html="qrCode" />
 
-                    <div v-if="setupKey" class="mt-4 max-w-xl text-sm text-gray-600">
+                    <div class="mt-4 max-w-xl text-sm text-gray-600" v-if="setupKey">
                         <p class="font-semibold">
                             Setup Key: <span v-html="setupKey"></span>
                         </p>
                     </div>
 
                     <div v-if="confirming" class="mt-4">
-                        <InputLabel for="code" value="Code" />
+                        <JetLabel for="code" value="Code" />
 
-                        <TextInput
+                        <JetInput
                             id="code"
                             v-model="confirmationForm.code"
                             type="text"
@@ -167,7 +168,7 @@ const disableTwoFactorAuthentication = () => {
                             @keyup.enter="confirmTwoFactorAuthentication"
                         />
 
-                        <InputError :message="confirmationForm.errors.code" class="mt-2" />
+                        <JetInputError :message="confirmationForm.errors.code" class="mt-2" />
                     </div>
                 </div>
 
@@ -188,16 +189,16 @@ const disableTwoFactorAuthentication = () => {
 
             <div class="mt-5">
                 <div v-if="! twoFactorEnabled">
-                    <ConfirmsPassword @confirmed="enableTwoFactorAuthentication">
-                        <PrimaryButton type="button" :class="{ 'opacity-25': enabling }" :disabled="enabling">
+                    <JetConfirmsPassword @confirmed="enableTwoFactorAuthentication">
+                        <JetButton type="button" :class="{ 'opacity-25': enabling }" :disabled="enabling">
                             Enable
-                        </PrimaryButton>
-                    </ConfirmsPassword>
+                        </JetButton>
+                    </JetConfirmsPassword>
                 </div>
 
                 <div v-else>
-                    <ConfirmsPassword @confirmed="confirmTwoFactorAuthentication">
-                        <PrimaryButton
+                    <JetConfirmsPassword @confirmed="confirmTwoFactorAuthentication">
+                        <JetButton
                             v-if="confirming"
                             type="button"
                             class="mr-3"
@@ -205,48 +206,48 @@ const disableTwoFactorAuthentication = () => {
                             :disabled="enabling"
                         >
                             Confirm
-                        </PrimaryButton>
-                    </ConfirmsPassword>
+                        </JetButton>
+                    </JetConfirmsPassword>
 
-                    <ConfirmsPassword @confirmed="regenerateRecoveryCodes">
-                        <SecondaryButton
+                    <JetConfirmsPassword @confirmed="regenerateRecoveryCodes">
+                        <JetSecondaryButton
                             v-if="recoveryCodes.length > 0 && ! confirming"
                             class="mr-3"
                         >
                             Regenerate Recovery Codes
-                        </SecondaryButton>
-                    </ConfirmsPassword>
+                        </JetSecondaryButton>
+                    </JetConfirmsPassword>
 
-                    <ConfirmsPassword @confirmed="showRecoveryCodes">
-                        <SecondaryButton
+                    <JetConfirmsPassword @confirmed="showRecoveryCodes">
+                        <JetSecondaryButton
                             v-if="recoveryCodes.length === 0 && ! confirming"
                             class="mr-3"
                         >
                             Show Recovery Codes
-                        </SecondaryButton>
-                    </ConfirmsPassword>
+                        </JetSecondaryButton>
+                    </JetConfirmsPassword>
 
-                    <ConfirmsPassword @confirmed="disableTwoFactorAuthentication">
-                        <SecondaryButton
+                    <JetConfirmsPassword @confirmed="disableTwoFactorAuthentication">
+                        <JetSecondaryButton
                             v-if="confirming"
                             :class="{ 'opacity-25': disabling }"
                             :disabled="disabling"
                         >
                             Cancel
-                        </SecondaryButton>
-                    </ConfirmsPassword>
+                        </JetSecondaryButton>
+                    </JetConfirmsPassword>
 
-                    <ConfirmsPassword @confirmed="disableTwoFactorAuthentication">
-                        <DangerButton
+                    <JetConfirmsPassword @confirmed="disableTwoFactorAuthentication">
+                        <JetDangerButton
                             v-if="! confirming"
                             :class="{ 'opacity-25': disabling }"
                             :disabled="disabling"
                         >
                             Disable
-                        </DangerButton>
-                    </ConfirmsPassword>
+                        </JetDangerButton>
+                    </JetConfirmsPassword>
                 </div>
             </div>
         </template>
-    </ActionSection>
+    </JetActionSection>
 </template>

@@ -1,12 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Bavix\Wallet\Exceptions;
 
-use Bavix\Wallet\Internal\Exceptions\InvalidArgumentExceptionInterface;
 use InvalidArgumentException;
 
-final class AmountInvalid extends InvalidArgumentException implements InvalidArgumentExceptionInterface
+class AmountInvalid extends InvalidArgumentException
 {
 }

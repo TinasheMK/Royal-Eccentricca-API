@@ -1,187 +1,118 @@
 <?php
 
-declare(strict_types=1);
-
-use Bavix\Wallet\Internal\Assembler\AvailabilityDtoAssembler;
-use Bavix\Wallet\Internal\Assembler\BalanceUpdatedEventAssembler;
-use Bavix\Wallet\Internal\Assembler\ExtraDtoAssembler;
-use Bavix\Wallet\Internal\Assembler\OptionDtoAssembler;
-use Bavix\Wallet\Internal\Assembler\TransactionCreatedEventAssembler;
-use Bavix\Wallet\Internal\Assembler\TransactionDtoAssembler;
-use Bavix\Wallet\Internal\Assembler\TransactionQueryAssembler;
-use Bavix\Wallet\Internal\Assembler\TransferDtoAssembler;
-use Bavix\Wallet\Internal\Assembler\TransferLazyDtoAssembler;
-use Bavix\Wallet\Internal\Assembler\TransferQueryAssembler;
-use Bavix\Wallet\Internal\Events\BalanceUpdatedEvent;
-use Bavix\Wallet\Internal\Events\TransactionCreatedEvent;
-use Bavix\Wallet\Internal\Events\WalletCreatedEvent;
-use Bavix\Wallet\Internal\Repository\TransactionRepository;
-use Bavix\Wallet\Internal\Repository\TransferRepository;
-use Bavix\Wallet\Internal\Repository\WalletRepository;
-use Bavix\Wallet\Internal\Service\ClockService;
-use Bavix\Wallet\Internal\Service\ConnectionService;
-use Bavix\Wallet\Internal\Service\DatabaseService;
-use Bavix\Wallet\Internal\Service\DispatcherService;
-use Bavix\Wallet\Internal\Service\JsonService;
-use Bavix\Wallet\Internal\Service\LockService;
-use Bavix\Wallet\Internal\Service\MathService;
-use Bavix\Wallet\Internal\Service\StateService;
-use Bavix\Wallet\Internal\Service\StorageService;
-use Bavix\Wallet\Internal\Service\TranslatorService;
-use Bavix\Wallet\Internal\Service\UuidFactoryService;
-use Bavix\Wallet\Internal\Transform\TransactionDtoTransformer;
-use Bavix\Wallet\Internal\Transform\TransferDtoTransformer;
 use Bavix\Wallet\Models\Transaction;
 use Bavix\Wallet\Models\Transfer;
 use Bavix\Wallet\Models\Wallet;
-use Bavix\Wallet\Services\AssistantService;
-use Bavix\Wallet\Services\AtmService;
-use Bavix\Wallet\Services\AtomicService;
-use Bavix\Wallet\Services\BasketService;
-use Bavix\Wallet\Services\BookkeeperService;
-use Bavix\Wallet\Services\CastService;
-use Bavix\Wallet\Services\ConsistencyService;
-use Bavix\Wallet\Services\DiscountService;
-use Bavix\Wallet\Services\EagerLoaderService;
+use Bavix\Wallet\Objects\Bring;
+use Bavix\Wallet\Objects\Cart;
+use Bavix\Wallet\Objects\EmptyLock;
+use Bavix\Wallet\Objects\Operation;
+use Bavix\Wallet\Services\CommonService;
 use Bavix\Wallet\Services\ExchangeService;
-use Bavix\Wallet\Services\PrepareService;
-use Bavix\Wallet\Services\PurchaseService;
-use Bavix\Wallet\Services\RegulatorService;
-use Bavix\Wallet\Services\TaxService;
-use Bavix\Wallet\Services\TransactionService;
-use Bavix\Wallet\Services\TransferService;
+use Bavix\Wallet\Services\LockService;
 use Bavix\Wallet\Services\WalletService;
+use Bavix\Wallet\Simple\BrickMath;
+use Bavix\Wallet\Simple\Rate;
+use Bavix\Wallet\Simple\Store;
 
 return [
     /**
-     * Arbitrary Precision Calculator.
-     *
-     * 'scale' - length of the mantissa
+     * This parameter is necessary for more accurate calculations.
+     * PS, Arbitrary Precision Calculations.
      */
     'math' => [
         'scale' => 64,
     ],
 
     /**
-     * Storage of the state of the balance of wallets.
+     * The parameter is used for fast packet overload.
+     * You do not need to search for the desired class by code, the library will do it itself.
      */
-    'cache' => [
-        'driver' => 'array',
-        'ttl' => 24 * 3600,
+    'package' => [
+        'rateable' => Rate::class,
+        'storable' => Store::class,
+        'mathable' => BrickMath::class,
     ],
 
     /**
-     * A system for dealing with race conditions.
+     * Lock settings for highload projects.
+     *
+     * If you want to replace the default cache with another,
+     * then write the name of the driver cache in the key `wallet.lock.cache`.
+     * @see https://laravel.com/docs/6.x/cache#driver-prerequisites
+     *
+     * @example
+     *  'cache' => 'redis'
      */
     'lock' => [
-        'driver' => 'array',
+        'cache' => null,
+        'enabled' => false,
         'seconds' => 1,
     ],
 
     /**
-     * Internal services that can be overloaded.
+     * Sometimes a slug may not match the currency and you need the ability to add an exception.
+     * The main thing is that there are not many exceptions).
+     *
+     * Syntax:
+     *  'slug' => 'currency'
+     *
+     * @example
+     *  'my-usd' => 'USD'
+     *
+     * @deprecated use wallets.meta.currency
      */
-    'internal' => [
-        'clock' => ClockService::class,
-        'connection' => ConnectionService::class,
-        'database' => DatabaseService::class,
-        'dispatcher' => DispatcherService::class,
-        'json' => JsonService::class,
-        'lock' => LockService::class,
-        'math' => MathService::class,
-        'state' => StateService::class,
-        'storage' => StorageService::class,
-        'translator' => TranslatorService::class,
-        'uuid' => UuidFactoryService::class,
-    ],
+    'currencies' => [],
 
     /**
-     * Services that can be overloaded.
+     * Services are the main core of the library and sometimes they need to be improved.
+     * This configuration will help you to quickly customize the library.
      */
     'services' => [
-        'assistant' => AssistantService::class,
-        'atm' => AtmService::class,
-        'atomic' => AtomicService::class,
-        'basket' => BasketService::class,
-        'bookkeeper' => BookkeeperService::class,
-        'regulator' => RegulatorService::class,
-        'cast' => CastService::class,
-        'consistency' => ConsistencyService::class,
-        'discount' => DiscountService::class,
-        'eager_loader' => EagerLoaderService::class,
         'exchange' => ExchangeService::class,
-        'prepare' => PrepareService::class,
-        'purchase' => PurchaseService::class,
-        'tax' => TaxService::class,
-        'transaction' => TransactionService::class,
-        'transfer' => TransferService::class,
+        'common' => CommonService::class,
         'wallet' => WalletService::class,
+        'lock' => LockService::class,
+    ],
+
+    'objects' => [
+        'bring' => Bring::class,
+        'cart' => Cart::class,
+        'emptyLock' => EmptyLock::class,
+        'operation' => Operation::class,
     ],
 
     /**
-     * Repositories for fetching data from the database.
-     */
-    'repositories' => [
-        'transaction' => TransactionRepository::class,
-        'transfer' => TransferRepository::class,
-        'wallet' => WalletRepository::class,
-    ],
-
-    /**
-     * Objects of transformer from DTO to array.
-     */
-    'transformers' => [
-        'transaction' => TransactionDtoTransformer::class,
-        'transfer' => TransferDtoTransformer::class,
-    ],
-
-    /**
-     * Builder class, needed to create DTO.
-     */
-    'assemblers' => [
-        'availability' => AvailabilityDtoAssembler::class,
-        'balance_updated_event' => BalanceUpdatedEventAssembler::class,
-        'extra' => ExtraDtoAssembler::class,
-        'option' => OptionDtoAssembler::class,
-        'transaction' => TransactionDtoAssembler::class,
-        'transfer_lazy' => TransferLazyDtoAssembler::class,
-        'transfer' => TransferDtoAssembler::class,
-        'transaction_created_event' => TransactionCreatedEventAssembler::class,
-        'transaction_query' => TransactionQueryAssembler::class,
-        'transfer_query' => TransferQueryAssembler::class,
-    ],
-
-    /**
-     * Package system events.
-     */
-    'events' => [
-        'balance_updated' => BalanceUpdatedEvent::class,
-        'wallet_created' => WalletCreatedEvent::class,
-        'transaction_created' => TransactionCreatedEvent::class,
-    ],
-
-    /**
-     * Base model 'transaction'.
+     * Transaction model configuration.
      */
     'transaction' => [
         'table' => 'transactions',
         'model' => Transaction::class,
+        'casts' => [
+            'amount' => 'string',
+        ],
     ],
 
     /**
-     * Base model 'transfer'.
+     * Transfer model configuration.
      */
     'transfer' => [
         'table' => 'transfers',
         'model' => Transfer::class,
+        'casts' => [
+            'fee' => 'string',
+        ],
     ],
 
     /**
-     * Base model 'wallet'.
+     * Wallet model configuration.
      */
     'wallet' => [
         'table' => 'wallets',
         'model' => Wallet::class,
+        'casts' => [
+            'balance' => 'string',
+        ],
         'creating' => [],
         'default' => [
             'name' => 'Default Wallet',

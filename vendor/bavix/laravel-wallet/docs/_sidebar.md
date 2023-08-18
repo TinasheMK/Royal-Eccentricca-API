@@ -15,22 +15,11 @@
     - [Confirm](confirm)
     - [Exchange](exchange)
     - [Withdraw taxing](taxing)
-    - [Credit Limits](credit-limits)
 
 - Multi Wallets
 
     - [New Wallet](new-wallet)
     - [Transfer](wallet-transfer)
-    - [Transaction Filter](transaction-filter)
-
-- High performance api handles
-
-  - [Batch transactions](batch-transactions)
-  - [Batch transfers](batch-transfers)
-
-- Nova
-
-    - [Change of balance](nova-action)
 
 - Purchases
 
@@ -39,24 +28,7 @@
     - [Refund](refund)
     - [Gift](gift)
     - [Cart](cart)
-
-- Transactions
-
-    - [Transaction](transaction) 
-    - [Race condition](race-condition) 
-    - [Atomic Service](atomic-service) 
-
-- Events
     
-    - [BalanceUpdatedEvent](balance-updated-event)
-    - [WalletCreatedEvent](wallet-created-event)
-    - [TransactionCreatedEvent](transaction-created-event)
-    - [Event Customize](event-customize)
-
-- CQRS
-
-    - [Create Wallet](command-create-wallet)
-
 - Additions
 
     - [Wallet Swap](laravel-wallet-swap)

@@ -21,12 +21,10 @@ class ShareInertiaData
     {
         Inertia::share(array_filter([
             'jetstream' => function () use ($request) {
-                $user = $request->user();
-
                 return [
-                    'canCreateTeams' => $user &&
-                                        Jetstream::userHasTeamFeatures($user) &&
-                                        Gate::forUser($user)->check('create', Jetstream::newTeamModel()),
+                    'canCreateTeams' => $request->user() &&
+                                        Jetstream::hasTeamFeatures() &&
+                                        Gate::forUser($request->user())->check('create', Jetstream::newTeamModel()),
                     'canManageTwoFactorAuthentication' => Features::canManageTwoFactorAuthentication(),
                     'canUpdatePassword' => Features::enabled(Features::updatePasswords()),
                     'canUpdateProfileInformation' => Features::canUpdateProfileInformation(),
@@ -40,20 +38,18 @@ class ShareInertiaData
                 ];
             },
             'user' => function () use ($request) {
-                if (! $user = $request->user()) {
+                if (! $request->user()) {
                     return;
                 }
 
-                $userHasTeamFeatures = Jetstream::userHasTeamFeatures($user);
-
-                if ($user && $userHasTeamFeatures) {
-                    $user->currentTeam;
+                if (Jetstream::hasTeamFeatures() && $request->user()) {
+                    $request->user()->currentTeam;
                 }
 
-                return array_merge($user->toArray(), array_filter([
-                    'all_teams' => $userHasTeamFeatures ? $user->allTeams()->values() : null,
+                return array_merge($request->user()->toArray(), array_filter([
+                    'all_teams' => Jetstream::hasTeamFeatures() ? $request->user()->allTeams()->values() : null,
                 ]), [
-                    'two_factor_enabled' => ! is_null($user->two_factor_secret),
+                    'two_factor_enabled' => ! is_null($request->user()->two_factor_secret),
                 ]);
             },
             'errorBags' => function () {
