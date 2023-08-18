@@ -48,5 +48,15 @@ Route::get('/product/{product}', [ProductController::class, 'getProduct'])->name
 Route::get('/product/search/{query}', [ProductController::class, 'searchProduct'])->name('product.search');
 Route::get('/products', [ProductController::class, 'getProducts'])->name('products');
 Route::get('/categories', [CategoryController::class, 'getCategories'])->name('categories');
-Route::get('/category/products/{category}', [CategoryController::class, 'getCategoryProducts'])->name('category.products');
+Route::get('/category/products/{category}', [CategoryController::class, 'getCategoryProducts'])->middleware("cors")->name('category.products');
 
+Route::group([
+
+    'middleware' => ['api', 'cors'],
+
+], function ($router) {
+
+    Route::get('/category/products1/{category}', [CategoryController::class, 'getCategoryProducts'])->middleware("cors")->name('category.products');
+
+
+});

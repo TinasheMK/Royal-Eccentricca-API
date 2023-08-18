@@ -99,6 +99,7 @@ class CategoryController extends Controller
           $p->images;
         }
 
-        return $category->products;
+        return response()->json($category->products);
+
     }
 }
