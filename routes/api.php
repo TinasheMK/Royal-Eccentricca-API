@@ -50,13 +50,3 @@ Route::get('/products', [ProductController::class, 'getProducts'])->name('produc
 Route::get('/categories', [CategoryController::class, 'getCategories'])->name('categories');
 Route::get('/category/products/{category}', [CategoryController::class, 'getCategoryProducts'])->middleware("cors")->name('category.products');
 
-Route::group([
-
-    'middleware' => ['api', 'cors'],
-
-], function ($router) {
-
-    Route::get('/category/products1/{category}', [CategoryController::class, 'getCategoryProducts'])->middleware("cors")->name('category.products');
-
-
-});

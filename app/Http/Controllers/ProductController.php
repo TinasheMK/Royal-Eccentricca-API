@@ -436,7 +436,7 @@ class ProductController extends Controller
 
     public function getProduct(Product $product)
     {
-
+        $product->images;
         return $product;
     }
     public function getProducts()
@@ -446,6 +446,12 @@ class ProductController extends Controller
         ->take(2)
         ->get()
         ;
+
+        foreach ($products->images as $p)
+        {
+          $p->images;
+        }
+
 
         return $products;
     }
