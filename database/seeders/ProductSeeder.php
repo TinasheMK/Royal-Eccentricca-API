@@ -31,6 +31,7 @@ class ProductSeeder extends Seeder
             $data->shop_id =1;
             $data->name = $product['productName'];
             $data->description = $product['description'];
+            $data->code = $product['simpleCode'];
             $data->full_specs =$product['description'];
             $data->price = 100;
             $data->cover_img = "";

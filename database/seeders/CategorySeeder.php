@@ -31,7 +31,7 @@ class CategorySeeder extends Seeder
 
             foreach ($product['children'] as $prod) {
                 $child = new Category();
-                $child->name = $product['categoryName'];
+                $child->name = $prod['categoryName'];
                 $child->description = $prod['categoryCode'];
                 $child->featured = true;
                 $child->parent_id = $data->id;

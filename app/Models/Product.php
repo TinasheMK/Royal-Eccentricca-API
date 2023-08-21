@@ -14,7 +14,7 @@ class Product extends Model
 
 
     protected $fillable = [
-        'name', 'description','price', 'images'
+        'name', 'description','price', 'images','code'
     ];
     public function shop(){
 
