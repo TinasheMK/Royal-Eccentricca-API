@@ -93,7 +93,15 @@ class CategoryController extends Controller
           foreach ($p->subCategory as $c)
           {
             $c->subCategory;
+            // if($c->products->count()==0) {
+            //     $c->delete();
+            //     $this->getCategories();
+            // }
           }
+        //   if($p->products->count()==0) {
+        //     $c->delete();
+        //     $this->getCategories();
+        //   }
         }
 
         return response()->json($categories);
