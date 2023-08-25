@@ -45,7 +45,7 @@ Route::get('/add-funds/{amount}', [OrderController::class, 'addfunds'])->name('o
 Route::get('/get-balance', [WalletController::class, 'getbalance'])->name('wallet.pay');
 
 Route::get('/product/{product}', [ProductController::class, 'getProduct'])->name('product.details');
-Route::get('/product/search/{query}', [ProductController::class, 'searchProduct'])->name('product.search');
+Route::post('/product/search', [ProductController::class, 'searchProduct'])->name('product.search');
 Route::get('/products', [ProductController::class, 'getProducts'])->name('products');
 Route::get('/categories', [CategoryController::class, 'getCategories'])->name('categories');
 Route::get('/category/products/{category}', [CategoryController::class, 'getCategoryProducts'])->middleware("cors")->name('category.products');

@@ -461,12 +461,15 @@ class ProductController extends Controller
         $querystr = $request->input('query');
 
         $products = Product::where('name','like','%'.$querystr.'%')
-        // ->orWhere('description','like','%'.$querystr.'%')
         ->orWhereHas('category', function ($query) use ($querystr) {
             $query->where('name', 'like', '%'.$querystr.'%');
         })
-        // ->orderBy('rating')
         ->paginate(20);
+
+        foreach ($products as $p)
+        {
+          $p->images;
+        }
 
         return $products;
     }

@@ -110,7 +110,8 @@ class CategoryController extends Controller
 
     public function getCategoryProducts(Category $category)
     {
-        $category->products();
+
+        $category->products()->paginate(20);
 
         foreach ($category->products as $p)
         {
