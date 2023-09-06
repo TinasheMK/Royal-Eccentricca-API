@@ -461,6 +461,7 @@ class ProductController extends Controller
         $querystr = $request->input('query');
 
         $products = Product::where('name','like','%'.$querystr.'%')
+        ->orWhere('code','like','%'.$querystr.'%')
         ->orWhereHas('category', function ($query) use ($querystr) {
             $query->where('name', 'like', '%'.$querystr.'%');
         })
